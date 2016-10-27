@@ -5,9 +5,9 @@
 	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=visualization"></script>	<!-- Google Maps API -->
 	<script>
 	var customers = [
-	    {"address":"500 Valley View Drive, Pleasant Grove, UT 84062","name":"Old House", "gender":"Male"},
-	    {"address":"809 N 150 W, American Fork, UT 84003","name":"New House", "gender":"Male"},
-	    {"address":"Ashton Blvd, Lehi, UT","name":"Work", "gender":"Female"}
+	    {"address":"500 Valley View Drive, Pleasant Grove, UT 84062","name":"Old House","personType":"Prospect"},
+	    {"address":"809 N 150 W, American Fork, UT 84003","name":"New House","personType":"Customer"},
+	    {"address":"Ashton Blvd, Lehi, UT","name":"Work", "personType":"Partner"}
 	];
 	var heatmapData = [];
 	var coded = [];
@@ -141,18 +141,85 @@
 		
 	}
 	
-	function showTheMenFolk()
+	function showProspects()
 	{
-		heatmapData = [];		
-		points.forEach(hideFemalePins);
+		var filter = {"personType":["Prospect"]};
+		filterMap(filter);
+	}
+	
+	function showProspectsAndCustomers()
+	{
+		var filter = {"personType":["Prospect","Customer"]};
+		filterMap(filter);
+	}
+	
+	function filterMap(filter)
+	{
+		showAllPoints();
+		filterByPersonType(filter.personType);
+		//filterByAge(filter.minAge, filter.maxAge);
+		//filterByTags(filter.tags);
+		rejiggerHeatmap();
+	}
+	
+	function showAllPoints()
+	{
+		points.forEach(showPoint);
+	}
+	
+	function showPoint(point, index)
+	{
+		point.marker.setMap(map);
+	}
+	
+	function filterByPersonType(personType)
+	{	
+		var arrayLength = points.length;
+		for (var i = 0; i < arrayLength; i++) 
+		{
+			hideUnmatchedPointsByType(personType, points[i])
+		}
+	}
+	
+	function hideUnmatchedPointsByType(personType, point)
+	{
+		var arrayLength = personType.length;
+		var match = false;
+		for (var i = 0; i < arrayLength; i++) {
+			if(point.customer.personType == personType[i])
+			{
+				match = true;
+			}			
+		}
+		if(match == false)
+		{
+			point.marker.setMap(null);
+		}
+	}
+	
+	function filterByAge(minAge, maxAge)
+	{	
+		points.forEach(hideUnmatchedPointsByAge(minAge, maxAge));
+	}
+	
+	function filterByTags(tags)
+	{	
+		points.forEach(hideUnmatchedPointsByTag(tags));
+	}
+	
+	function rejiggerHeatmap()
+	{
+		heatmapData = [];
+		points.forEach(addToHeatMapIfShown);
 		heatmap.setData(heatmapData);
 	}
 	
-	function showTheLadyFolk()
+	function addToHeatMapIfShown(point, index)
 	{
-		heatmapData = [];
-		points.forEach(hideMalePins);
-		heatmap.setData(heatmapData);
+		if(point.marker.map != null)
+		{
+			heatmapData.push(point.location);
+		}
 	}
 	
 	function showBothFolk()
@@ -160,32 +227,6 @@
 		heatmapData = [];
 		points.forEach(showPin);
 		heatmap.setData(heatmapData);
-	}
-	
-	function hideFemalePins(point,index)
-	{	
-		if(point.customer.gender == "Female")
-		{
-			point.marker.setMap(null);
-		}
-		else
-		{
-			heatmapData.push(point.location);
-			point.marker.setMap(map);
-		}
-	}
-	
-	function hideMalePins(point,index)
-	{	
-		if(point.customer.gender == "Male")
-		{
-			point.marker.setMap(null);
-		}
-		else
-		{
-			heatmapData.push(point.location);
-			point.marker.setMap(map);
-		}
 	}
 	
 	function showPin(point, index)
@@ -217,9 +258,9 @@
 	<!-- Dislay Google map here -->
 	<div id='map-canvas'></div><br/>
 	<div>
-		<button onclick="showTheMenFolk()">MenFolk</button>
-		<button onclick="showTheLadyFolk()">LadyFolk</button>
-		<button onclick="showBothFolk()">BothFolk</button>
+		<button onclick="showBothFolk()">Eveyone</button>
+		<button onclick="showProspects()">Prospects</button>
+		<button onclick="showProspectsAndCustomers()">Prospects & Customers</button>
 	</div>
 </body>
 </html>
