@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Google Map Template with Geocoded Address</title>
-	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=visualization"></script>	<!-- Google Maps API -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/foundation/6.2.4/foundation.min.css">
+	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyB8KCqVcp520DoGnUy1xfzK3c7pEJ8xDNQ&libraries=visualization"></script>	<!-- Google Maps API -->
 	<script>
 	var customers = [
 	    {"address":"500 Valley View Drive, Pleasant Grove, UT 84062","name":"Old House","personType":"Prospect"},
@@ -13,21 +17,21 @@
 	var coded = [];
 	var failures = [];
 	var map;	// Google map object
-	
-	var geocoder = new google.maps.Geocoder();	
+
+	var geocoder = new google.maps.Geocoder();
 	var points = [];
-	
+
 	var heatmap = null;
-	
+
 	// Initialize and display a google map
 	function Init()
 	{
 		// Create a Google coordinate object for where to initially center the map
 		var latlng = new google.maps.LatLng( 37.785, -122.435 );	// Washington, DC
-		
+
 		// Map options for how to display the Google map
 		var mapOptions = { zoom: 12, center: latlng  };
-		
+
 		// Show the Google map in the div with the attribute id 'map-canvas'.
 		map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 		heatmap = new google.maps.visualization.HeatmapLayer({
@@ -43,23 +47,23 @@
 			(function pants(number){
 				geocoder.geocode( { 'address': customers[i].address }, function(results, status) {
 				var addr_type = results[0].types[0];	// type of address inputted that was geocoded
-					if ( status == google.maps.GeocoderStatus.OK ) 
+					if ( status == google.maps.GeocoderStatus.OK )
 					{
 						ShowLocation( results[0].geometry.location, "", addr_type, customers[number]);
 						heatmapData.push(results[0].geometry.location);
 						coded.push("1");
 						//coded.push({"addr_type" : addr_type, "location" : results[0].geometry.location , "number":number});
-					} 	
+					}
 					else
-					{			
-						failures.push("Geocode was not successful for the following reason: " + status);       
+					{
+						failures.push("Geocode was not successful for the following reason: " + status);
 					}
 				});
 			})(i);
 		}
 		setTimeout(makeHeatMap,3000);
 	}
-	
+
 	function checkFinished()
 	{
 		if(coded.length + failures.length == addresses.length)
@@ -73,9 +77,9 @@
 			setTimeout(checkFinished(),1000);
 		}
 	}
-	
+
 	function makeHeatMap()
-	{		
+	{
 		heatmap.setData(heatmapData)
 		heatmap.setMap(map);
 	}
@@ -84,35 +88,35 @@
 	{
 		var arrayLength = coded.length;
 		for (var i = 0; i < arrayLength; i++) {
-			ShowLocation( coded[i].location, "", coded[i].addr_type, customerNames[i] + coded[i].number )	
+			ShowLocation( coded[i].location, "", coded[i].addr_type, customerNames[i] + coded[i].number )
 		}
 	}
-		
-	
+
+
 	// Update the Google map for the user's inputted address
 	function UpdateMap( )
 	{
 	        // instantiate a geocoder object
-		
+
 		// Get the user's inputted address
 		var address = document.getElementById( "address" ).value;
-	
+
 		// Make asynchronous call to Google geocoding API
 		geocoder.geocode( { 'address': address }, function(results, status) {
 			var addr_type = results[0].types[0];	// type of address inputted that was geocoded
-			if ( status == google.maps.GeocoderStatus.OK ) 
+			if ( status == google.maps.GeocoderStatus.OK )
 				ShowLocation( results[0].geometry.location, address, addr_type );
-			else     
-				alert("Geocode was not successful for the following reason: " + status);        
+			else
+				alert("Geocode was not successful for the following reason: " + status);
 		});
 	}
-	
+
 	// Show the location (address) on the map.
 	function ShowLocation( latlng, address, addr_type, customer)
 	{
 		// Center the map at the specified location
 		map.setCenter( latlng );
-		
+
 		// Set the zoom level according to the address level of detail the user specified
 		var zoom = 12;
 		switch ( addr_type )
@@ -122,37 +126,37 @@
 			case "street_address"				: zoom = 15; break;		// user specified a street address
 		}
 		map.setZoom( zoom );
-		
-		// Place a Google Marker at the same location as the map center 
+
+		// Place a Google Marker at the same location as the map center
 		// When you hover over the marker, it will display the title
-		var marker = new google.maps.Marker( { 
-			position: latlng,     
-			map: map,      
+		var marker = new google.maps.Marker( {
+			position: latlng,
+			map: map,
 			title: customer.name
 		});
 		points.push({"marker":marker,"customer":customer, "location":latlng});
-		
+
 		// Create an InfoWindow for the marker
 		var contentString = customer.name;	// HTML text to display in the InfoWindow
 		var infowindow = new google.maps.InfoWindow( { content: contentString } );
-		
+
 		// Set event to display the InfoWindow anchored to the marker when the marker is clicked.
 		google.maps.event.addListener( marker, 'click', function() { infowindow.open( map, marker ); });
-		
+
 	}
-	
+
 	function showProspects()
 	{
 		var filter = {"personType":["Prospect"]};
 		filterMap(filter);
 	}
-	
+
 	function showProspectsAndCustomers()
 	{
 		var filter = {"personType":["Prospect","Customer"]};
 		filterMap(filter);
 	}
-	
+
 	function filterMap(filter)
 	{
 		showAllPoints();
@@ -161,26 +165,26 @@
 		//filterByTags(filter.tags);
 		rejiggerHeatmap();
 	}
-	
+
 	function showAllPoints()
 	{
 		points.forEach(showPoint);
 	}
-	
+
 	function showPoint(point, index)
 	{
 		point.marker.setMap(map);
 	}
-	
+
 	function filterByPersonType(personType)
-	{	
+	{
 		var arrayLength = points.length;
-		for (var i = 0; i < arrayLength; i++) 
+		for (var i = 0; i < arrayLength; i++)
 		{
 			hideUnmatchedPointsByType(personType, points[i])
 		}
 	}
-	
+
 	function hideUnmatchedPointsByType(personType, point)
 	{
 		var arrayLength = personType.length;
@@ -189,31 +193,31 @@
 			if(point.customer.personType == personType[i])
 			{
 				match = true;
-			}			
+			}
 		}
 		if(match == false)
 		{
 			point.marker.setMap(null);
 		}
 	}
-	
+
 	function filterByAge(minAge, maxAge)
-	{	
+	{
 		points.forEach(hideUnmatchedPointsByAge(minAge, maxAge));
 	}
-	
+
 	function filterByTags(tags)
-	{	
+	{
 		points.forEach(hideUnmatchedPointsByTag(tags));
 	}
-	
+
 	function rejiggerHeatmap()
 	{
 		heatmapData = [];
 		points.forEach(addToHeatMapIfShown);
 		heatmap.setData(heatmapData);
 	}
-	
+
 	function addToHeatMapIfShown(point, index)
 	{
 		if(point.marker.map != null)
@@ -221,46 +225,76 @@
 			heatmapData.push(point.location);
 		}
 	}
-	
+
 	function showBothFolk()
 	{
 		heatmapData = [];
 		points.forEach(showPin);
 		heatmap.setData(heatmapData);
 	}
-	
+
 	function showPin(point, index)
 	{
 		heatmapData.push(point.location);
 		point.marker.setMap(map);
 	}
-	
+
 	// Call the method 'Init()' to display the google map when the web page is displayed ( load event )
 	google.maps.event.addDomListener( window, 'load', Init );
 	google.maps.event.addDomListener( window, 'ready', load );
 
 	</script>
 	<style>
-	/* style settings for Google map */
-	#map-canvas
-	{
-		height: 97%;	/* map height */
+	#map-canvas,
+	.off-canvas {
+		height: 100vh;
 	}
-	html, body 
-	{
-        height: 100%;
-        margin: 0;
-        padding: 0;
-    }
+	.off-canvas-content {
+		position: relative;
+		height: 100vh;
+	}
+	#canvasToggle {
+		position: absolute;
+		top: 5em;
+		left: 5em;
+	}
+	#fooBar {
+		background-color: red;
+		height: 100vh;
+		width: 100vw;
+	}
 	</style>
 </head>
-<body> 
-	<!-- Dislay Google map here -->
-	<div id='map-canvas'></div><br/>
-	<div>
-		<button onclick="showBothFolk()">Eveyone</button>
-		<button onclick="showProspects()">Prospects</button>
-		<button onclick="showProspectsAndCustomers()">Prospects & Customers</button>
-	</div>
+<body>
+	<div class="off-canvas-wrapper">
+    <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+      <div class="off-canvas position-left" id="offCanvas" data-off-canvas>
+
+        <!-- Close button -->
+        <button class="close-button" aria-label="Close menu" type="button" data-close>
+          <span aria-hidden="true">&times;</span>
+        </button>
+
+        <!-- Menu -->
+				<div>
+					<button class="button" onclick="showTheMenFolk()">MenFolk</button>
+					<button class="button" onclick="showTheLadyFolk()">LadyFolk</button>
+					<button class="button" onclick="showBothFolk()">BothFolk</button>
+				</div>
+
+      </div>
+
+      <div class="off-canvas-content" data-off-canvas-content>
+				<!-- Dislay Google map here -->
+				<div id='map-canvas'></div>
+        <button id="canvasToggle" type="button" class="button" data-toggle="offCanvas">Open Menu</button>
+      </div>
+    </div>
+  </div>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/foundation/6.2.4/foundation.min.js"></script>
+	<script>
+		$(document).foundation();
+	</script>
 </body>
 </html>
