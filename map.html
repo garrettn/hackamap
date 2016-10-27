@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Google Map Template with Geocoded Address</title>
+	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=visualization"></script>	<!-- Google Maps API -->
+	<script>
+	var customers = [
+	    {"address":"500 Valley View Drive, Pleasant Grove, UT 84062","name":"Old House", "gender":"Male"},
+	    {"address":"809 N 150 W, American Fork, UT 84003","name":"New House", "gender":"Male"},
+	    {"address":"Ashton Blvd, Lehi, UT","name":"Work", "gender":"Female"}
+	];
+	var heatmapData = [];
+	var coded = [];
+	var failures = [];
+	var map;	// Google map object
+	
+	var geocoder = new google.maps.Geocoder();	
+	var points = [];
+	
+	var heatmap = null;
+	
+	// Initialize and display a google map
+	function Init()
+	{
+		// Create a Google coordinate object for where to initially center the map
+		var latlng = new google.maps.LatLng( 37.785, -122.435 );	// Washington, DC
+		
+		// Map options for how to display the Google map
+		var mapOptions = { zoom: 12, center: latlng  };
+		
+		// Show the Google map in the div with the attribute id 'map-canvas'.
+		map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+		heatmap = new google.maps.visualization.HeatmapLayer({
+          map: map
+		});
+		load();
+	}
+
+	function load()
+	{
+		var arrayLength = customers.length;
+		for (var i = 0; i < arrayLength; i++) {
+			(function pants(number){
+				geocoder.geocode( { 'address': customers[i].address }, function(results, status) {
+				var addr_type = results[0].types[0];	// type of address inputted that was geocoded
+					if ( status == google.maps.GeocoderStatus.OK ) 
+					{
+						ShowLocation( results[0].geometry.location, "", addr_type, customers[number]);
+						heatmapData.push(results[0].geometry.location);
+						coded.push("1");
+						//coded.push({"addr_type" : addr_type, "location" : results[0].geometry.location , "number":number});
+					} 	
+					else
+					{			
+						failures.push("Geocode was not successful for the following reason: " + status);       
+					}
+				});
+			})(i);
+		}
+		setTimeout(makeHeatMap,3000);
+	}
+	
+	function checkFinished()
+	{
+		if(coded.length + failures.length == addresses.length)
+		{
+			makeHeatMap();
+		}
+		else
+		{
+			var bigness = coded.length + failures.length;
+			alert("I'm not done I only have " + bigness);
+			setTimeout(checkFinished(),1000);
+		}
+	}
+	
+	function makeHeatMap()
+	{		
+		heatmap.setData(heatmapData)
+		heatmap.setMap(map);
+	}
+
+	function showStuff()
+	{
+		var arrayLength = coded.length;
+		for (var i = 0; i < arrayLength; i++) {
+			ShowLocation( coded[i].location, "", coded[i].addr_type, customerNames[i] + coded[i].number )	
+		}
+	}
+		
+	
+	// Update the Google map for the user's inputted address
+	function UpdateMap( )
+	{
+	        // instantiate a geocoder object
+		
+		// Get the user's inputted address
+		var address = document.getElementById( "address" ).value;
+	
+		// Make asynchronous call to Google geocoding API
+		geocoder.geocode( { 'address': address }, function(results, status) {
+			var addr_type = results[0].types[0];	// type of address inputted that was geocoded
+			if ( status == google.maps.GeocoderStatus.OK ) 
+				ShowLocation( results[0].geometry.location, address, addr_type );
+			else     
+				alert("Geocode was not successful for the following reason: " + status);        
+		});
+	}
+	
+	// Show the location (address) on the map.
+	function ShowLocation( latlng, address, addr_type, customer)
+	{
+		// Center the map at the specified location
+		map.setCenter( latlng );
+		
+		// Set the zoom level according to the address level of detail the user specified
+		var zoom = 12;
+		switch ( addr_type )
+		{
+			case "administrative_area_level_1"	: zoom = 6; break;		// user specified a state
+			case "locality"						: zoom = 10; break;		// user specified a city/town
+			case "street_address"				: zoom = 15; break;		// user specified a street address
+		}
+		map.setZoom( zoom );
+		
+		// Place a Google Marker at the same location as the map center 
+		// When you hover over the marker, it will display the title
+		var marker = new google.maps.Marker( { 
+			position: latlng,     
+			map: map,      
+			title: customer.name
+		});
+		points.push({"marker":marker,"customer":customer, "location":latlng});
+		
+		// Create an InfoWindow for the marker
+		var contentString = customer.name;	// HTML text to display in the InfoWindow
+		var infowindow = new google.maps.InfoWindow( { content: contentString } );
+		
+		// Set event to display the InfoWindow anchored to the marker when the marker is clicked.
+		google.maps.event.addListener( marker, 'click', function() { infowindow.open( map, marker ); });
+		
+	}
+	
+	function showTheMenFolk()
+	{
+		heatmapData = [];		
+		points.forEach(hideFemalePins);
+		heatmap.setData(heatmapData);
+	}
+	
+	function showTheLadyFolk()
+	{
+		heatmapData = [];
+		points.forEach(hideMalePins);
+		heatmap.setData(heatmapData);
+	}
+	
+	function showBothFolk()
+	{
+		heatmapData = [];
+		points.forEach(showPin);
+		heatmap.setData(heatmapData);
+	}
+	
+	function hideFemalePins(point,index)
+	{	
+		if(point.customer.gender == "Female")
+		{
+			point.marker.setMap(null);
+		}
+		else
+		{
+			heatmapData.push(point.location);
+			point.marker.setMap(map);
+		}
+	}
+	
+	function hideMalePins(point,index)
+	{	
+		if(point.customer.gender == "Male")
+		{
+			point.marker.setMap(null);
+		}
+		else
+		{
+			heatmapData.push(point.location);
+			point.marker.setMap(map);
+		}
+	}
+	
+	function showPin(point, index)
+	{
+		heatmapData.push(point.location);
+		point.marker.setMap(map);
+	}
+	
+	// Call the method 'Init()' to display the google map when the web page is displayed ( load event )
+	google.maps.event.addDomListener( window, 'load', Init );
+	google.maps.event.addDomListener( window, 'ready', load );
+
+	</script>
+	<style>
+	/* style settings for Google map */
+	#map-canvas
+	{
+		height: 97%;	/* map height */
+	}
+	html, body 
+	{
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+	</style>
+</head>
+<body> 
+	<!-- Dislay Google map here -->
+	<div id='map-canvas'></div><br/>
+	<div>
+		<button onclick="showTheMenFolk()">MenFolk</button>
+		<button onclick="showTheLadyFolk()">LadyFolk</button>
+		<button onclick="showBothFolk()">BothFolk</button>
+	</div>
+</body>
+</html>
