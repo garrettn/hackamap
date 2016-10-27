@@ -17,8 +17,10 @@
 	var coded = [];
 	var failures = [];
 	var map;	// Google map object
-
-	var geocoder = new google.maps.Geocoder();
+	var loadedCustomers = 0;
+	var showHeatMap = false;
+	var filterApplied = null;
+	var geocoder = new google.maps.Geocoder();	
 	var points = [];
 
 	var heatmap = null;
@@ -37,7 +39,37 @@
 		heatmap = new google.maps.visualization.HeatmapLayer({
           map: map
 		});
+		map.addListener('zoom_changed', modifiedZoom);
 		load();
+	}
+	
+	function modifiedZoom()
+	{
+		var bounds = map.getBounds();
+		var markerCount = 0;
+		for(var i = 0; i < points.length; i++)
+		{        
+			if(bounds.contains(points[i].marker.position))
+			{
+				markerCount++;
+			}
+		}
+		if(markerCount > 1 && showHeatMap == false)
+		{
+			heatmap.setMap(map);
+			hideAllMarkers();
+			showHeatMap = true;
+		}
+		else if(markerCount < 2 && showHeatMap == true)
+		{
+			showHeatMap = false;
+			heatmap.setMap(null);
+			showAllPoints();
+			if(filterApplied!=null)
+			{
+				filterMap(filterApplied);
+			}			
+		}
 	}
 
 	function load()
@@ -51,9 +83,7 @@
 					{
 						ShowLocation( results[0].geometry.location, "", addr_type, customers[number]);
 						heatmapData.push(results[0].geometry.location);
-						coded.push("1");
-						//coded.push({"addr_type" : addr_type, "location" : results[0].geometry.location , "number":number});
-					}
+					} 	
 					else
 					{
 						failures.push("Geocode was not successful for the following reason: " + status);
@@ -61,19 +91,18 @@
 				});
 			})(i);
 		}
-		setTimeout(makeHeatMap,3000);
+		setTimeout(checkFinished,1000);
 	}
 
 	function checkFinished()
 	{
-		if(coded.length + failures.length == addresses.length)
+		if(loadedCustomers == customers.length)
 		{
 			makeHeatMap();
+			modifiedZoom();
 		}
 		else
 		{
-			var bigness = coded.length + failures.length;
-			alert("I'm not done I only have " + bigness);
 			setTimeout(checkFinished(),1000);
 		}
 	}
@@ -114,6 +143,7 @@
 	// Show the location (address) on the map.
 	function ShowLocation( latlng, address, addr_type, customer)
 	{
+		loadedCustomers++;
 		// Center the map at the specified location
 		map.setCenter( latlng );
 
@@ -134,8 +164,8 @@
 			map: map,
 			title: customer.name
 		});
-		points.push({"marker":marker,"customer":customer, "location":latlng});
-
+		points.push({"marker":marker,"customer":customer, "location":latlng, "shown": true});
+		
 		// Create an InfoWindow for the marker
 		var contentString = customer.name;	// HTML text to display in the InfoWindow
 		var infowindow = new google.maps.InfoWindow( { content: contentString } );
@@ -159,6 +189,7 @@
 
 	function filterMap(filter)
 	{
+		filterApplied = filter;
 		showAllPoints();
 		filterByPersonType(filter.personType);
 		//filterByAge(filter.minAge, filter.maxAge);
@@ -168,12 +199,7 @@
 
 	function showAllPoints()
 	{
-		points.forEach(showPoint);
-	}
-
-	function showPoint(point, index)
-	{
-		point.marker.setMap(map);
+		points.forEach(markPointsShown);
 	}
 
 	function filterByPersonType(personType)
@@ -197,6 +223,7 @@
 		}
 		if(match == false)
 		{
+			point.shown = false;
 			point.marker.setMap(null);
 		}
 	}
@@ -220,23 +247,45 @@
 
 	function addToHeatMapIfShown(point, index)
 	{
-		if(point.marker.map != null)
+		if(point.shown)
 		{
 			heatmapData.push(point.location);
 		}
 	}
-
-	function showBothFolk()
+	
+	function showEverything()
 	{
-		heatmapData = [];
-		points.forEach(showPin);
+		showAllPoints();
 		heatmap.setData(heatmapData);
 	}
 
 	function showPin(point, index)
+	{		
+		if(point.shown)
+		{
+			point.marker.setMap(map);
+		}
+	}
+	
+	function markPointsShown(point, index)
 	{
+		point.shown = true;
 		heatmapData.push(point.location);
-		point.marker.setMap(map);
+		if(!showHeatMap)
+		{
+			point.marker.setMap(map);
+		}
+	}
+	
+	function hidePin(point, index)
+	{
+		point.shown = false;
+		point.marker.setMap(null);
+	}
+	
+	function hideAllMarkers()
+	{
+		points.forEach(hidePin);
 	}
 
 	// Call the method 'Init()' to display the google map when the web page is displayed ( load event )
@@ -277,7 +326,7 @@
 
         <!-- Menu -->
 				<div>
-					<button class="button" onclick="showBothFolk()">Everyone</button>
+					<button class="button" onclick="showEverything()">Everyone</button>
 					<button class="button" onclick="showProspects()">Prospects</button>
 					<button class="button" onclick="showProspectsAndCustomers()">Prospects &amp; Customers</button>
 				</div>
