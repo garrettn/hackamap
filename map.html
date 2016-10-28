@@ -223,7 +223,7 @@
 
 		// Map options for how to display the Google map
 		var mapOptions = {
-			zoom: 11,
+			zoom: 9,
             minZoom: 3,
 			center: latlng,
 			mapTypeControl: false,
@@ -285,6 +285,7 @@
 		}
 
         makeHeatMap();
+		findConcentrationByGrid();
         setTimeout(modifiedZoom,3000);
 	}
 
