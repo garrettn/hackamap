@@ -34,7 +34,7 @@
 		var latlng = new google.maps.LatLng( 37.785, -122.435 );	// Washington, DC
 
 		// Map options for how to display the Google map
-		var mapOptions = { zoom: 12, center: latlng  };
+		var mapOptions = { zoom: 12, center: latlng, mapTypeId: 'satellite'};
 
 		// Show the Google map in the div with the attribute id 'map-canvas'.
 		map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
@@ -48,31 +48,31 @@
 	function modifiedZoom()
 	{
         // @TODO Drew ... We broke the bounds call on line 55 :( but we can totally filter stuff bruh!
-//		var bounds = map.getBounds();
-//		var markerCount = 0;
-//		for(var i = 0; i < points.length; i++)
-//		{
-//			if(bounds.contains(points[i].marker.position))
-//			{
-//				markerCount++;
-//			}
-//		}
-//		if(markerCount > 1 && showHeatMap == false)
-//		{
-//			heatmap.setMap(map);
-//			hideAllMarkers();
-//			showHeatMap = true;
-//		}
-//		else if(markerCount < 2 && showHeatMap == true)
-//		{
-//			showHeatMap = false;
-//			heatmap.setMap(null);
-//			showAllPoints();
-//			if(filterApplied!=null)
-//			{
-//				filterMap(filterApplied);
-//			}
-//		}
+		var bounds = map.getBounds();
+		var markerCount = 0;
+		for(var i = 0; i < points.length; i++)
+		{
+			if(bounds.contains(points[i].marker.position))
+			{
+				markerCount++;
+			}
+		}
+		if(markerCount > 50 && showHeatMap == false)
+		{
+			heatmap.setMap(map);
+			unshowAllMarkers();
+			showHeatMap = true;
+		}
+		else if(markerCount < 50 && showHeatMap == true)
+		{
+			showHeatMap = false;
+			heatmap.setMap(null);
+			showAllPoints();
+			if(filterApplied!=null)
+			{
+				filterMap(filterApplied);
+			}
+		}
 	}
 
 	function load()
@@ -82,12 +82,12 @@
             var lat = customers[i].lat
             var lng = customers[i].lng
 
-            ShowLocation({lat:lat, lng:lng}, customers[i]);
+            ShowLocation(new google.maps.LatLng(lat,lng), customers[i]);
             heatmapData.push(new google.maps.LatLng(lat,lng));
 		}
 
         makeHeatMap();
-        modifiedZoom();
+        setTimeout(modifiedZoom,3000);
 	}
 
 	function makeHeatMap()
@@ -96,14 +96,7 @@
 		heatmap.setMap(map);
 	}
 
-//    function showStuff()
-//    {
-//        var arrayLength = coded.length;
-//        for (var i = 0; i < arrayLength; i++) {
-//            ShowLocation( coded[i].location, "", coded[i].addr_type, customerNames[i] + coded[i].number )
-//        }
-//    }
-//
+
 //	// Update the Google map for the user's inputted address
 //	function UpdateMap( )
 //	{
@@ -130,14 +123,14 @@
 		map.setCenter( latlng );
 
 		// Set the zoom level according to the address level of detail the user specified
-		var zoom = 15;
+		//var zoom = 15;
 //		switch ( addr_type )
 //		{
 //			case "administrative_area_level_1"	: zoom = 6; break;		// user specified a state
 //			case "locality"						: zoom = 10; break;		// user specified a city/town
 //			case "street_address"				: zoom = 15; break;		// user specified a street address
 //		}
-		map.setZoom( zoom );
+		//map.setZoom( zoom );
 
 		// Place a Google Marker at the same location as the map center
 		// When you hover over the marker, it will display the title
@@ -269,6 +262,17 @@
 	function hideAllMarkers()
 	{
 		points.forEach(hidePin);
+	}
+	
+	function unshowAllMarkers()
+	{
+		points.forEach(unshowPin);
+	}
+	
+	
+	function unshowPin(point, index)
+	{
+		point.marker.setMap(null);
 	}
 
 	</script>
