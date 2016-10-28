@@ -31,7 +31,7 @@
 	function Init()
 	{
 		// Create a Google coordinate object for where to initially center the map
-		var latlng = new google.maps.LatLng( 37.785, -122.435 );	// Washington, DC
+		var latlng = new google.maps.LatLng( 40.7296646, -73.7530085 );	// Washington, DC
 
 		var greyscale = new google.maps.StyledMapType(
 				[
@@ -223,7 +223,8 @@
 
 		// Map options for how to display the Google map
 		var mapOptions = {
-			zoom: 12,
+			zoom: 11,
+            minZoom: 3,
 			center: latlng,
 			mapTypeControl: false,
 			mapTypeControlOptions: {
@@ -317,7 +318,7 @@
 	{
 		loadedCustomers++;
 		// Center the map at the specified location
-		map.setCenter( latlng );
+//		map.setCenter( latlng );
 
 		// Set the zoom level according to the address level of detail the user specified
 		//var zoom = 15;
