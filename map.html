@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8" />
+    <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Google Map Template with Geocoded Address</title>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/foundation/6.2.4/foundation.min.css">
 	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyB8KCqVcp520DoGnUy1xfzK3c7pEJ8xDNQ&libraries=visualization"></script>	<!-- Google Maps API -->
-	<script>
-	var customers = [
-	    {"address":"500 Valley View Drive, Pleasant Grove, UT 84062","name":"Old House","personType":"Prospect"},
-	    {"address":"809 N 150 W, American Fork, UT 84003","name":"New House","personType":"Customer"},
-	    {"address":"Ashton Blvd, Lehi, UT","name":"Work", "personType":"Partner"}
-	];
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <script>
+	var customers;
+    $.getJSON("customers2.json", function (json) {
+        customers = json;
+        Init();
+    });
 	var heatmapData = [];
 	var coded = [];
 	var failures = [];
@@ -45,66 +47,47 @@
 	
 	function modifiedZoom()
 	{
-		var bounds = map.getBounds();
-		var markerCount = 0;
-		for(var i = 0; i < points.length; i++)
-		{        
-			if(bounds.contains(points[i].marker.position))
-			{
-				markerCount++;
-			}
-		}
-		if(markerCount > 1 && showHeatMap == false)
-		{
-			heatmap.setMap(map);
-			hideAllMarkers();
-			showHeatMap = true;
-		}
-		else if(markerCount < 2 && showHeatMap == true)
-		{
-			showHeatMap = false;
-			heatmap.setMap(null);
-			showAllPoints();
-			if(filterApplied!=null)
-			{
-				filterMap(filterApplied);
-			}			
-		}
+        // @TODO Drew ... We broke the bounds call on line 55 :( but we can totally filter stuff bruh!
+//		var bounds = map.getBounds();
+//		var markerCount = 0;
+//		for(var i = 0; i < points.length; i++)
+//		{
+//			if(bounds.contains(points[i].marker.position))
+//			{
+//				markerCount++;
+//			}
+//		}
+//		if(markerCount > 1 && showHeatMap == false)
+//		{
+//			heatmap.setMap(map);
+//			hideAllMarkers();
+//			showHeatMap = true;
+//		}
+//		else if(markerCount < 2 && showHeatMap == true)
+//		{
+//			showHeatMap = false;
+//			heatmap.setMap(null);
+//			showAllPoints();
+//			if(filterApplied!=null)
+//			{
+//				filterMap(filterApplied);
+//			}
+//		}
 	}
 
 	function load()
 	{
 		var arrayLength = customers.length;
 		for (var i = 0; i < arrayLength; i++) {
-			(function pants(number){
-				geocoder.geocode( { 'address': customers[i].address }, function(results, status) {
-				var addr_type = results[0].types[0];	// type of address inputted that was geocoded
-					if ( status == google.maps.GeocoderStatus.OK )
-					{
-						ShowLocation( results[0].geometry.location, "", addr_type, customers[number]);
-						heatmapData.push(results[0].geometry.location);
-					} 	
-					else
-					{
-						failures.push("Geocode was not successful for the following reason: " + status);
-					}
-				});
-			})(i);
-		}
-		setTimeout(checkFinished,1000);
-	}
+            var lat = customers[i].lat
+            var lng = customers[i].lng
 
-	function checkFinished()
-	{
-		if(loadedCustomers == customers.length)
-		{
-			makeHeatMap();
-			modifiedZoom();
+            ShowLocation({lat:lat, lng:lng}, customers[i]);
+            heatmapData.push(new google.maps.LatLng(lat,lng));
 		}
-		else
-		{
-			setTimeout(checkFinished(),1000);
-		}
+
+        makeHeatMap();
+        modifiedZoom();
 	}
 
 	function makeHeatMap()
@@ -113,48 +96,47 @@
 		heatmap.setMap(map);
 	}
 
-	function showStuff()
-	{
-		var arrayLength = coded.length;
-		for (var i = 0; i < arrayLength; i++) {
-			ShowLocation( coded[i].location, "", coded[i].addr_type, customerNames[i] + coded[i].number )
-		}
-	}
-
-
-	// Update the Google map for the user's inputted address
-	function UpdateMap( )
-	{
-	        // instantiate a geocoder object
-
-		// Get the user's inputted address
-		var address = document.getElementById( "address" ).value;
-
-		// Make asynchronous call to Google geocoding API
-		geocoder.geocode( { 'address': address }, function(results, status) {
-			var addr_type = results[0].types[0];	// type of address inputted that was geocoded
-			if ( status == google.maps.GeocoderStatus.OK )
-				ShowLocation( results[0].geometry.location, address, addr_type );
-			else
-				alert("Geocode was not successful for the following reason: " + status);
-		});
-	}
+//    function showStuff()
+//    {
+//        var arrayLength = coded.length;
+//        for (var i = 0; i < arrayLength; i++) {
+//            ShowLocation( coded[i].location, "", coded[i].addr_type, customerNames[i] + coded[i].number )
+//        }
+//    }
+//
+//	// Update the Google map for the user's inputted address
+//	function UpdateMap( )
+//	{
+//	        // instantiate a geocoder object
+//
+//		// Get the user's inputted address
+//		var address = document.getElementById( "address" ).value;
+//
+//		// Make asynchronous call to Google geocoding API
+//		geocoder.geocode( { 'address': address }, function(results, status) {
+//			var addr_type = results[0].types[0];	// type of address inputted that was geocoded
+//			if ( status == google.maps.GeocoderStatus.OK )
+//				ShowLocation( results[0].geometry.location, address, addr_type );
+//			else
+//				alert("Geocode was not successful for the following reason: " + status);
+//		});
+//	}
 
 	// Show the location (address) on the map.
-	function ShowLocation( latlng, address, addr_type, customer)
+	function ShowLocation( latlng, customer, address, addr_type)
 	{
 		loadedCustomers++;
 		// Center the map at the specified location
 		map.setCenter( latlng );
 
 		// Set the zoom level according to the address level of detail the user specified
-		var zoom = 12;
-		switch ( addr_type )
-		{
-			case "administrative_area_level_1"	: zoom = 6; break;		// user specified a state
-			case "locality"						: zoom = 10; break;		// user specified a city/town
-			case "street_address"				: zoom = 15; break;		// user specified a street address
-		}
+		var zoom = 15;
+//		switch ( addr_type )
+//		{
+//			case "administrative_area_level_1"	: zoom = 6; break;		// user specified a state
+//			case "locality"						: zoom = 10; break;		// user specified a city/town
+//			case "street_address"				: zoom = 15; break;		// user specified a street address
+//		}
 		map.setZoom( zoom );
 
 		// Place a Google Marker at the same location as the map center
@@ -216,7 +198,7 @@
 		var arrayLength = personType.length;
 		var match = false;
 		for (var i = 0; i < arrayLength; i++) {
-			if(point.customer.personType == personType[i])
+			if(point.customer.personType.toLowerCase() == personType[i].toLowerCase())
 			{
 				match = true;
 			}
@@ -289,10 +271,6 @@
 		points.forEach(hidePin);
 	}
 
-	// Call the method 'Init()' to display the google map when the web page is displayed ( load event )
-	google.maps.event.addDomListener( window, 'load', Init );
-	google.maps.event.addDomListener( window, 'ready', load );
-
 	</script>
 	<style>
 	#map-canvas,
@@ -341,7 +319,6 @@
       </div>
     </div>
   </div>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/foundation/6.2.4/foundation.min.js"></script>
 	<script>
 		$(document).foundation();
