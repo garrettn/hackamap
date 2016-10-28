@@ -178,6 +178,12 @@
 		var filter = {"personType":null,"tag":["r"]};
 		filterMap(filter);
 	}
+	
+	function showComplexStuff()
+	{
+		var filter = {"personType":["Prospect","Vendor"],"tag":["a"]};
+		filterMap(filter);
+	}
 
 	function filterMap(filter)
 	{
@@ -375,6 +381,7 @@
 					<button class="button contentButton" onclick="showTagA()">Has Tag 'Bought apples' Applied</button>
 					<button class="button contentButton" onclick="showTagB()">Has Tag 'Started Campaign' Applied</button>
 					<button class="button contentButton" onclick="showTagR()">Has Tag 'Hates contact' Applied</button>
+					<button class="button contentButton" onclick="showComplexStuff()">Prospects &amp; Vendors That Have The 'Bought Apples' Tag Applied</button>
 				</div>
 
       </div>
