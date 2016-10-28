@@ -26,7 +26,6 @@
 	var points = [];
 
 	var heatmap = null;
-
 	// Initialize and display a google map
 	function Init()
 	{
@@ -255,7 +254,7 @@
 				markerCount++;
 			}
 		}
-		if(markerCount > 50 && showHeatMap == false)
+		if(markerCount > 60 && showHeatMap == false)
 		{
 			heatmap.setMap(map);
 			unshowAllMarkers();
