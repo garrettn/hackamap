@@ -22,7 +22,7 @@
 	var loadedCustomers = 0;
 	var showHeatMap = false;
 	var filterApplied = null;
-	var geocoder = new google.maps.Geocoder();	
+	var geocoder = new google.maps.Geocoder();
 	var points = [];
 
 	var heatmap = null;
@@ -44,7 +44,7 @@
 		map.addListener('zoom_changed', modifiedZoom);
 		load();
 	}
-	
+
 	function modifiedZoom()
 	{
         // @TODO Drew ... We broke the bounds call on line 55 :( but we can totally filter stuff bruh!
@@ -140,7 +140,7 @@
 			title: customer.name
 		});
 		points.push({"marker":marker,"customer":customer, "location":latlng, "shown": true});
-		
+
 		// Create an InfoWindow for the marker
 		var contentString = customer.name;	// HTML text to display in the InfoWindow
 		var infowindow = new google.maps.InfoWindow( { content: contentString } );
@@ -227,7 +227,7 @@
 			heatmapData.push(point.location);
 		}
 	}
-	
+
 	function showEverything()
 	{
 		filterApplied = null;
@@ -236,13 +236,13 @@
 	}
 
 	function showPin(point, index)
-	{		
+	{
 		if(point.shown)
 		{
 			point.marker.setMap(map);
 		}
 	}
-	
+
 	function markPointsShown(point, index)
 	{
 		point.shown = true;
@@ -252,13 +252,13 @@
 			point.marker.setMap(map);
 		}
 	}
-	
+
 	function hidePin(point, index)
 	{
 		point.shown = false;
 		point.marker.setMap(null);
 	}
-	
+
 	function hideAllMarkers()
 	{
 		points.forEach(hidePin);
@@ -289,7 +289,13 @@
 		position: absolute;
 		top: 5em;
 		left: 5em;
+		transform: rotate(0deg);
+		transition: transform 0.2s ease;
 	}
+	#canvasToggle:hover {
+		transform: rotate(360deg);
+	}
+}
 	#fooBar {
 		background-color: red;
 		height: 100vh;
