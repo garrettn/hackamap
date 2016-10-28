@@ -223,7 +223,7 @@
 
 		// Map options for how to display the Google map
 		var mapOptions = {
-			zoom: 11,
+			zoom: 9,
             minZoom: 3,
 			center: latlng,
 			mapTypeControl: false,
@@ -285,6 +285,7 @@
 		}
 
         makeHeatMap();
+		findConcentrationByGrid();
         setTimeout(modifiedZoom,3000);
 	}
 
@@ -523,6 +524,97 @@
 	{
 		point.marker.setMap(null);
 	}
+	
+	function findLatitudeBounds()
+	{
+		var maxLat=customers[0].lat*1;
+		var minLat=customers[0].lat*1;
+		for (i=1;i<customers.length;i++) 
+		{
+			if (customers[i].lat*1>maxLat) {maxLat=customers[i].lat*1;}
+			if (customers[i].lat*1<minLat) {minLat=customers[i].lat*1;}
+		}
+		return {"min":minLat,"max":maxLat};
+	}
+	
+	function findLongitudeBounds()
+	{
+		var maxLng=customers[0].lng*1;
+		var minLng=customers[0].lng*1;
+		for (i=1;i<customers.length;i++) 
+		{
+			if (customers[i].lng*1>maxLng) {maxLng=customers[i].lng*1;}
+			if (customers[i].lng*1<minLng) {minLng=customers[i].lng*1;}
+		}
+		return {"min":minLng,"max":maxLng};
+	}
+	
+	function findConcentrationByGrid()
+	{
+		var s=50;//--------------------How many rows/columns the area gets gridded into
+		var latBounds = findLatitudeBounds();
+		var lngBounds = findLongitudeBounds();
+		var latDelta=latBounds.max-latBounds.min;
+		var lngDelta=lngBounds.max-lngBounds.min;
+		var latStep=latDelta/s;
+		var lngStep=lngDelta/s;
+		var latBands=Array();
+		for(i=1;i<=s;i++){latBands.push(i*latStep);}
+		var lngBands=Array();
+		for(i=1;i<=s;i++){lngBands.push(i*lngStep);}
+		//---Keeping score in these arrays
+		var gridCount=new Array();
+		for(var x=0;x<s;x++)
+		{
+			for(var y=0;y<s;y++)
+			{
+				var cell=[x,y];
+				gridCount.push(cell);
+			}
+		}
+		for(var lt=0;lt<s;lt++)
+		{
+			for(var lg=0;lg<s;lg++)
+			{
+				gridCount[lt][lg]=0;
+			}
+		}
+		
+		for(p=0;p<points.length;p++)
+		{
+			if(points[p].shown)
+			{
+				//---Keeping track of which grid sector 
+				var whichLat=Math.floor((points[p].customer.lat-latBounds.min)/latStep);
+				var whichLng=Math.floor((points[p].customer.lng-lngBounds.min)/lngStep);
+				gridCount[whichLat][whichLng]++;
+			}
+		}
+		
+		var checking=gridCount[0][0];
+		var rightLat;
+		var rightLng;
+		for(lt=0;lt<s;lt++)
+		{
+			for(lg=0;lg<s;lg++)
+			{
+				if(gridCount[lt][lg]>checking)
+				{
+					checking=gridCount[lt][lg];
+					rightLat=lt;
+					rightLng=lg;
+				}
+			}
+		}
+		//convert grid sector to lat/lng (center of sector)
+		var winningLat=latBounds.min+(rightLat*latStep)+(latStep/2);
+		var winningLng=lngBounds.min+(rightLng*lngStep)+(lngStep/2);
+		var newCenter=new google.maps.LatLng(winningLat,winningLng);
+		map.setCenter(newCenter);
+
+	}
+	
+	
 
 	</script>
 	<style>
@@ -581,6 +673,7 @@
 					<button class="button contentButton" onclick="showTagB()">Has Tag 'Started Campaign' Applied</button>
 					<button class="button contentButton" onclick="showTagR()">Has Tag 'Hates contact' Applied</button>
 					<button class="button contentButton" onclick="showComplexStuff()">Prospects &amp; Vendors That Have The 'Bought Apples' Tag Applied</button>
+					<button class="button contentButton" onclick="findConcentrationByGrid()">Find highest concentration</button>					
 				</div>
 
       </div>
