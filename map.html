@@ -331,19 +331,29 @@
 	}
 	#canvasToggle {
 		position: absolute;
-		top: 5em;
-		left: 5em;
-		transform: rotate(0deg);
-		transition: transform 0.2s ease;
-	}
-	#canvasToggle:hover {
-		transform: rotate(360deg);
+		top: 50px;
+		left: 10px;
 	}
 }
 	#fooBar {
 		background-color: red;
 		height: 100vh;
 		width: 100vw;
+	}
+	.button {
+		border-radius: 4px;
+		background-color: #777;	
+	}
+	.button:hover {
+		background-color: #555;
+	}
+	.button.contentButton:focus {
+		background-color: #78BE42;
+		outline: none;		
+	}
+	.button.contentButton:focus:hover {
+		background-color: #78BE42;
+		outline: none;
 	}
 	</style>
 </head>
@@ -359,12 +369,12 @@
 
         <!-- Menu -->
 				<div>
-					<button class="button" onclick="showEverything()">Everyone</button>
-					<button class="button" onclick="showProspects()">Prospects</button>
-					<button class="button" onclick="showProspectsAndCustomers()">Prospects &amp; Customers</button>
-					<button class="button" onclick="showTagA()">Has Tag 'Bought apples' Applied</button>
-					<button class="button" onclick="showTagB()">Has Tag 'Started Campaign' Applied</button>
-					<button class="button" onclick="showTagR()">Has Tag 'Hates contact' Applied</button>
+					<button class="button contentButton" onclick="showEverything()">Everyone</button>
+					<button class="button contentButton" onclick="showProspects()">Prospects</button>
+					<button class="button contentButton" onclick="showProspectsAndCustomers()">Prospects &amp; Customers</button>
+					<button class="button contentButton" onclick="showTagA()">Has Tag 'Bought apples' Applied</button>
+					<button class="button contentButton" onclick="showTagB()">Has Tag 'Started Campaign' Applied</button>
+					<button class="button contentButton" onclick="showTagR()">Has Tag 'Hates contact' Applied</button>
 				</div>
 
       </div>
