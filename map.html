@@ -47,7 +47,6 @@
 	
 	function modifiedZoom()
 	{
-        // @TODO Drew ... We broke the bounds call on line 55 :( but we can totally filter stuff bruh!
 		var bounds = map.getBounds();
 		var markerCount = 0;
 		for(var i = 0; i < points.length; i++)
@@ -152,13 +151,31 @@
 
 	function showProspects()
 	{
-		var filter = {"personType":["Prospect"]};
+		var filter = {"personType":["Prospect"],"tag":null};
 		filterMap(filter);
 	}
 
 	function showProspectsAndCustomers()
 	{
-		var filter = {"personType":["Prospect","Customer"]};
+		var filter = {"personType":["Prospect","Customer"],"tag":null};
+		filterMap(filter);
+	}
+	
+	function showTagA()
+	{
+		var filter = {"personType":null,"tag":["a"]};
+		filterMap(filter);
+	}
+	
+	function showTagB()
+	{
+		var filter = {"personType":null,"tag":["b"]};
+		filterMap(filter);
+	}
+	
+	function showTagR()
+	{
+		var filter = {"personType":null,"tag":["r"]};
 		filterMap(filter);
 	}
 
@@ -166,9 +183,15 @@
 	{
 		filterApplied = filter;
 		showAllPoints();
-		filterByPersonType(filter.personType);
+		if(filter.personType != null)
+		{
+			filterByPersonType(filter.personType);
+		}
 		//filterByAge(filter.minAge, filter.maxAge);
-		//filterByTags(filter.tags);
+		if(filter.tag != null)
+		{
+			filterByTags(filter.tag);
+		}
 		rejiggerHeatmap();
 	}
 
@@ -202,6 +225,23 @@
 			point.marker.setMap(null);
 		}
 	}
+	
+	function hideUnmatchedPointsByTag(tag, point)
+	{
+		var arrayLength = tag.length;
+		var match = false;
+		for (var i = 0; i < arrayLength; i++) {
+			if(point.customer.tags.indexOf(tag[i].toLowerCase()) != -1)
+			{
+				match = true;
+			}
+		}
+		if(match == false)
+		{
+			point.shown = false;
+			point.marker.setMap(null);
+		}
+	}
 
 	function filterByAge(minAge, maxAge)
 	{
@@ -210,7 +250,11 @@
 
 	function filterByTags(tags)
 	{
-		points.forEach(hideUnmatchedPointsByTag(tags));
+		var arrayLength = points.length;
+		for (var i = 0; i < arrayLength; i++)
+		{
+			hideUnmatchedPointsByTag(tags, points[i])
+		}
 	}
 
 	function rejiggerHeatmap()
@@ -312,6 +356,9 @@
 					<button class="button" onclick="showEverything()">Everyone</button>
 					<button class="button" onclick="showProspects()">Prospects</button>
 					<button class="button" onclick="showProspectsAndCustomers()">Prospects &amp; Customers</button>
+					<button class="button" onclick="showTagA()">Has Tag 'Bought apples' Applied</button>
+					<button class="button" onclick="showTagB()">Has Tag 'Started Campaign' Applied</button>
+					<button class="button" onclick="showTagR()">Has Tag 'Hates contact' Applied</button>
 				</div>
 
       </div>
